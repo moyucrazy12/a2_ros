@@ -43,8 +43,8 @@ info "Initialising git submodules..."
 # FIXME: This needs to be removed in favor of not dealing with submodules inside the docker environment
 git config --global --add safe.directory /a2_ros
 
-# a2_mujoco needs the mujoco symlink removed before git can clone into it
-MUJOCO_SYMLINK="$SCRIPT_DIR/external/a2_mujoco/mujoco"
+# unitree_mujoco needs the mujoco symlink removed before git can clone into it
+MUJOCO_SYMLINK="$SCRIPT_DIR/external/unitree_mujoco/simulate/mujoco"
 [ -L "$MUJOCO_SYMLINK" ] && rm "$MUJOCO_SYMLINK"
 git -C "$SCRIPT_DIR" submodule update --init --recursive
 
@@ -112,11 +112,11 @@ else
     info "MuJoCo ${MUJOCO_VERSION} already present."
 fi
 
-# Fix symlink in a2_mujoco
-SYMLINK="$SCRIPT_DIR/external/a2_mujoco/mujoco"
+# Fix symlink in unitree_mujoco
+SYMLINK="$SCRIPT_DIR/external/unitree_mujoco/simulate/mujoco"
 rm -f "$SYMLINK"
 ln -s "$MUJOCO_DIR" "$SYMLINK"
-info "Symlink: external/a2_mujoco/mujoco -> $MUJOCO_DIR"
+info "Symlink: external/unitree_mujoco/simulate/mujoco -> $MUJOCO_DIR"
 
 # ---------------------------------------------------------------
 # Unitree SDK2
@@ -143,7 +143,10 @@ fi
 # ---------------------------------------------------------------
 # Ignore unitree_ros2 example package (not needed, would fail to build)
 # ---------------------------------------------------------------
-touch "$SCRIPT_DIR/external/unitree_ros2/example/COLCON_IGNORE"
+UNITREE_EXAMPLE="$SCRIPT_DIR/external/unitree_ros2/example"
+if [ -d "$UNITREE_EXAMPLE" ]; then
+    touch "$UNITREE_EXAMPLE/COLCON_IGNORE"
+fi
 
 # ---------------------------------------------------------------
 # Patch unitree message packages for ROS2 Jazzy
@@ -203,10 +206,10 @@ info "Checking Python packages in venv..."
 info "Building workspace..."
 source /opt/ros/jazzy/setup.bash
 cd "$SCRIPT_DIR"
-# a2_mujoco uses /proc/self/exe to locate its install prefix, so its binary
+# unitree_mujoco uses /proc/self/exe to locate its install prefix, so its binary
 # must be physically copied (not symlinked) — build it separately without --symlink-install.
-colcon build --symlink-install --packages-skip a2_mujoco
-colcon build --packages-select a2_mujoco
+colcon build --symlink-install --packages-skip unitree_mujoco
+colcon build --packages-select unitree_mujoco
 info "Build complete."
 
 # ---------------------------------------------------------------
