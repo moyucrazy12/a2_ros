@@ -5,11 +5,11 @@ Starts:
   - a2_mujoco       : MuJoCo physics simulator (publishes /lowstate, subscribes /lowcmd)
   - locomotion_controller : RL policy node (subscribes /lowstate + /mode + /cmd_vel,
                                              publishes /lowcmd)
+  - a2_bridge       : republishes /lowstate as /joint_states and /imu/data
   - joy_node        : reads gamepad from /dev/input/js0
   - teleop_joy      : maps gamepad axes/buttons to /cmd_vel and /mode
 
 Optional (pass rviz:=true):
-  - sim_clock_node  : publishes /clock from sim time
   - robot_state_publisher : broadcasts TF from URDF
   - rviz2           : 3-D visualisation
 
@@ -31,7 +31,6 @@ from launch_ros.parameter_descriptions import ParameterValue
 
 def generate_launch_description():
     description_dir = get_package_share_directory('a2_description')
-    mujoco_dir      = get_package_share_directory('unitree_mujoco')
 
     # ---------- launch arguments ----------
     scene_arg = DeclareLaunchArgument(
@@ -55,7 +54,7 @@ def generate_launch_description():
         package='unitree_mujoco',
         executable='unitree_mujoco',
         output='screen',
-        arguments=[scene_path, mujoco_dir],
+        arguments=['-s', scene_path],
         # MuJoCo resolves mesh paths relative to CWD
         cwd=mjcf_dir,
     )
@@ -63,6 +62,20 @@ def generate_launch_description():
     locomotion_node = Node(
         package='a2_locomotion_controller',
         executable='locomotion_executor',
+        output='screen',
+        parameters=[{'use_sim_time': False}],
+    )
+
+    sim_clock_node = Node(
+        package='a2_sim_utils',
+        executable='sim_clock',
+        output='screen',
+        parameters=[{'use_sim_time': False}],
+    )
+
+    a2_bridge_node = Node(
+        package='a2_sim_utils',
+        executable='a2_bridge',
         output='screen',
         parameters=[{'use_sim_time': True}],
     )
@@ -88,13 +101,7 @@ def generate_launch_description():
         }]
     )
 
-    # --- optional visualisation ---
-    sim_clock_node = Node(
-        package='a2_description',
-        executable='sim_clock_node',
-        condition=IfCondition(LaunchConfiguration('rviz')),
-    )
-
+    # --- robot state publisher (always on - needed for TF chain odom->base_link->lidar) ---
     robot_state_pub_node = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
@@ -104,9 +111,9 @@ def generate_launch_description():
             ),
             'use_sim_time': True,
         }],
-        condition=IfCondition(LaunchConfiguration('rviz')),
     )
 
+    # --- optional visualisation ---
     rviz_node = Node(
         package='rviz2',
         executable='rviz2',
@@ -121,10 +128,11 @@ def generate_launch_description():
         scene_arg,
         rviz_arg,
         mujoco_node,
+        sim_clock_node,
         locomotion_node,
+        a2_bridge_node,
         joy_node,
         teleop_node,
-        sim_clock_node,
         robot_state_pub_node,
         rviz_node,
     ])

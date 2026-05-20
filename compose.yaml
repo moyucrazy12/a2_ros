@@ -25,32 +25,24 @@ services:
 
       # Repositories
       - type: bind
-        source: ./a2_ros
-        target: /a2_ros/a2_ros
+        source: ./src
+        target: /a2_ros/src
       - type: bind
         source: ./external
         target: /a2_ros/external
+      - type: bind
+        source: ./scripts
+        target: /a2_ros/scripts
 
       # FIXME: Note that changes require container restart for single file mounts
-      - type: bind
-        source: ./entrypoint.sh
-        target: /a2_ros/entrypoint.sh
-      - type: bind
-        source: setup.sh
-        target: /a2_ros/setup.sh
-      - type: bind
-        source: install.sh
-        target: /a2_ros/install.sh
       - type: bind
         source: ./.git
         target: /a2_ros/.git
 
     devices:
       # Added a joystick device
-        - /dev/input/js0:/dev/input/js0
+      - /dev/input/js0:/dev/input/js0
     working_dir: /a2_ros
-
-    entrypoint: [ "./entrypoint.sh" ]
     command: [ "bash" ]
     stdin_open: true
     tty: true
