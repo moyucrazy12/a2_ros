@@ -187,6 +187,17 @@ ENV USER=${USER:-ubuntu}
 # Copy Unitree SDK from Builder
 COPY --from=builder /opt/unitree_robotics /opt/unitree_robotics
 
+USER root
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && apt-get install -y \
+    libgstreamer1.0-dev \
+    libgstreamer-plugins-base1.0-dev \
+    libgstreamer-plugins-good1.0-dev \
+    ros-${ROS_DISTRO}-camera-calibration-parsers \
+    ros-${ROS_DISTRO}-camera-info-manager
+USER $USER
+
 # Set default package manifest for robot
 ENV A2_MODE=robot
 ENV COLCON_DEFAULTS_FILE=/a2_ros/environment/colcon/robot.defaults.yaml
