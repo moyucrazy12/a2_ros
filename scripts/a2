@@ -175,7 +175,9 @@ case "$CMD" in
         ros2 launch a2_ros exploration.launch.py rviz:=$RVIZ
         ;;
     dlio)
-        ros2 launch a2_ros dlio.launch.py rviz:=$RVIZ
+        DLIO_ARGS=(rviz:=$RVIZ)
+        [ "$A2_MODE" = "sim" ] && DLIO_ARGS+=(use_sim_time:=true)
+        ros2 launch a2_ros dlio.launch.py "${DLIO_ARGS[@]}"
         ;;
     detect)
         # Object detection (YOLO, runs on CPU). Use the real-robot launch on hardware.

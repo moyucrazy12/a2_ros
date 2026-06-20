@@ -12,9 +12,11 @@ Starts:
 
 Arguments:
   dlio:=false  (default) — a2_bridge broadcasts ground-truth map→base_link TF.
-  dlio:=true             — a2_bridge does NOT broadcast TF; DLIO (launched separately
-                           via `a2 --dlio`) provides it instead. registered_scan_pub
-                           will fail TF lookups until DLIO is up, then work normally.
+  dlio:=true             — a2_bridge publishes only IMU, joint_states, and camera;
+                           odometry, TF, and registered_scan come from DLIO.
+                           Launch DLIO separately in another terminal:
+                             ros2 launch direct_lidar_inertial_odometry a2_front_live_rss.launch.py \
+                               pointcloud_topic:=/mujoco/front_lidar use_sim_time:=true
 
 Optional (pass rviz:=true):
   - robot_state_publisher: broadcasts TF from URDF
@@ -42,7 +44,7 @@ def generate_launch_description():
     # ---------- launch arguments ----------
     scene_arg = DeclareLaunchArgument(
         'scene',
-        default_value='scene.xml',
+        default_value='scene_maze.xml',
         description='Scene XML filename inside share/a2_description/mjcf/'
     )
     rviz_arg = DeclareLaunchArgument(
@@ -60,7 +62,8 @@ def generate_launch_description():
     scene_path = PathJoinSubstitution([description_dir, 'mjcf', LaunchConfiguration('scene')])
     mjcf_dir   = os.path.join(description_dir, 'mjcf')
     urdf_path  = os.path.join(description_dir, 'urdf', 'a2.urdf')
-    rviz_path  = os.path.join(description_dir, 'rviz', 'default.rviz')
+    a2_ros_dir = get_package_share_directory('a2_ros')
+    rviz_path  = os.path.join(a2_ros_dir, 'rviz', 'default.rviz')
 
     dlio = LaunchConfiguration('dlio')
 
@@ -91,31 +94,18 @@ def generate_launch_description():
         package='a2_unitree_bridge',
         executable='a2_bridge_sim',
         output='screen',
-        parameters=[{'use_sim_time': True, 'publish_tf': True}],
+        parameters=[{'use_sim_time': True}],
         condition=UnlessCondition(dlio),
     )
 
-    # DLIO mode: a2_bridge skips TF broadcast (DLIO provides it)
+    # DLIO mode: same bridge, but skip odometry/TF/registered_scan
+    # (DLIO provides those when launched separately).
     a2_bridge_dlio = Node(
-        package='a2_sim_utils',
-        executable='a2_bridge',
+        package='a2_unitree_bridge',
+        executable='a2_bridge_sim',
         output='screen',
-        parameters=[{'use_sim_time': True, 'publish_tf': False}],
+        parameters=[{'use_sim_time': True, 'publish_odom': False}],
         condition=IfCondition(dlio),
-    )
-
-    # Transforms raw LiDAR into map frame → /registered_scan.
-    # Works regardless of TF source (ground-truth or DLIO).
-    registered_scan_node = Node(
-        package='a2_utils',
-        executable='registered_scan_pub',
-        output='screen',
-        parameters=[{
-            'use_sim_time': True,
-            'input_topic':  '/mujoco/front_lidar',
-            'target_frame': 'map',
-            'tf_lag_sec':   0.025,
-        }],
     )
 
     joy_node = Node(
@@ -170,7 +160,6 @@ def generate_launch_description():
         locomotion_node,
         a2_bridge_node,
         a2_bridge_dlio,
-        registered_scan_node,
         joy_node,
         teleop_node,
         robot_state_pub_node,
