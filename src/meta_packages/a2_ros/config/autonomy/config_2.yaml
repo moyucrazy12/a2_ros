@@ -1,0 +1,130 @@
+tare_planner_node:
+  ros__parameters:
+    sub_start_exploration_topic_ : /start_exploration
+    sub_terrain_map_topic_ : /terrain_map
+    sub_terrain_map_ext_topic_ : /terrain_map_ext
+    sub_state_estimation_topic_ : /state_estimation
+    sub_registered_scan_topic_ : /registered_scan
+    sub_coverage_boundary_topic_ : /sensor_coverage_planner/coverage_boundary
+    sub_viewpoint_boundary_topic_ : /navigation_boundary
+    sub_nogo_boundary_topic_ : /sensor_coverage_planner/nogo_boundary
+    sub_joystick_topic_ : /joy
+    sub_reset_waypoint_topic_ : /reset_waypoint
+    pub_exploration_finish_topic_ : exploration_finish
+    pub_runtime_breakdown_topic_ : runtime_breakdown
+    pub_runtime_topic_ : /runtime
+    pub_waypoint_topic_ : /way_point
+    pub_momentum_activation_count_topic_ : momentum_activation_count
+
+    kAutoStart : true
+    kRushHome : true
+    kUseTerrainHeight : false
+    kCheckTerrainCollision : true
+    kExtendWayPoint : true
+    kUseLineOfSightLookAheadPoint : true
+    kNoExplorationReturnHome : true
+    kExtendWayPointDistanceBig : 2.0      # was 4.0  - shorter so waypoints don't shoot across rooms / clip corners
+    kExtendWayPointDistanceSmall : 1.0    # was 1.5  - tighter extension inside narrow corridors
+    kKeyposeCloudDwzFilterLeafSize : 0.05
+    kRushHomeDist : 2.0                   # was 3.0  - scaled to a ~10 m arena
+    kAtHomeDistThreshold : 0.5
+    kTerrainCollisionThreshold : 0.3
+    kLookAheadDistance : 2.0              # was 4.0  - look-ahead must be < corridor/room scale to track turns
+    kUseMomentum : false                 # keep off: momentum hurts precise turning in 1.5 m corridors
+    kDirectionChangeCounterThr : 6
+    kDirectionNoChangeCounterThr : 5
+    kResetWaypointJoystickAxesID : 2
+
+    # PlanningEnv
+    kUseFrontier : true
+    kFrontierClusterTolerance : 0.5       # was 1.0  - keep frontier clusters from bridging thin walls
+    kFrontierClusterMinSize : 2           # keep small so tiny frontiers in passages survive
+    kUseCoverageBoundaryOnFrontier : true
+    kUseCoverageBoundaryOnObjectSurface : false
+
+    # Rolling occupancy grid
+    rolling_occupancy_grid/resolution_x : 0.15   # was 0.2 - finer so 1.5 m gaps / 0.5 m walls resolve cleanly
+    rolling_occupancy_grid/resolution_y : 0.15   # was 0.2
+    rolling_occupancy_grid/resolution_z : 0.2
+
+    kSurfaceCloudDwzLeafSize : 0.2        # was 0.4  - finer surface sampling for small wall faces
+    kCollisionCloudDwzLeafSize : 0.05
+    kKeyposeGraphCollisionCheckRadius : 0.15
+    kKeyposeGraphCollisionCheckPointNumThr : 1
+    kKeyposeCloudStackNum : 5
+    kPointCloudRowNum : 50
+    kPointCloudColNum : 50
+    kPointCloudLevelNum : 30
+    kMaxCellPointNum : 100000
+    kPointCloudCellSize : 8.0             # was 18.0 - one 18 m cell swallowed the whole maze; 8 m gives rolling granularity
+    kPointCloudCellHeight : 1.8           # > 1.5 m wall height, keep
+    kPointCloudManagerNeighborCellNum : 5
+    kCoverCloudZSqueezeRatio : 2.0
+
+    # KeyposeGraph
+    keypose_graph/kAddNodeMinDist : 0.2              # was 0.3 - denser nodes for reliable graph around tight corners
+    keypose_graph/kAddNonKeyposeNodeMinDist : 0.2    # was 0.3
+    keypose_graph/kAddEdgeConnectDistThr : 0.5
+    keypose_graph/kAddEdgeToLastKeyposeDistThr : 0.5
+    keypose_graph/kAddEdgeVerticalThreshold : 0.5
+    keypose_graph/kAddEdgeCollisionCheckResolution : 0.1
+    keypose_graph/kAddEdgeCollisionCheckRadius : 0.25   # was 0.2 - ~robot half-width+margin so edges keep clear of walls
+    keypose_graph/kAddEdgeCollisionCheckPointNumThr : 1
+
+    # ViewPointManager
+    viewpoint_manager/number_x : 50      # was 40  - 50 x 0.3 = 15 m horizon: whole maze fits in the local layer
+    viewpoint_manager/number_y : 50      # was 40
+    viewpoint_manager/number_z : 1
+    viewpoint_manager/resolution_x : 0.3 # was 0.6 - need several viewpoints across a 1.5 m corridor
+    viewpoint_manager/resolution_y : 0.3 # was 0.6
+    viewpoint_manager/resolution_z : 0.0
+    kConnectivityHeightDiffThr : 0.25
+    kGreedyViewPointSampleRange : 3      # 3 x 0.3 = 0.9 m greedy range, matches new resolution
+    kLocalPathOptimizationItrMax : 10
+    kViewPointCollisionMargin : 0.25     # was 0.3  - just above robot half-width; lets viewpoints sit in 1.5 m corridors yet clear walls
+    kViewPointCollisionMarginZPlus : 0.25
+    kViewPointCollisionMarginZMinus : 0.25
+    kCollisionGridZScale : 1.0
+    kCollisionGridResolutionX : 0.02
+    kCollisionGridResolutionY : 0.02
+    kCollisionGridResolutionZ : 0.0
+    kCollisionPointThr : 1
+    kLineOfSightStopAtNearestObstacle : true
+    kViewPointHeightFromTerrain : 0.75   # set to your sensor mount height; 0.75 sits mid-wall (walls are 1.5 m)
+    kViewPointHeightFromTerrainChangeThreshold : 0.6
+    kCheckDynamicObstacleCollision : false
+    kCollisionFrameCountMax : 3
+
+    kSensorRange : 3.0                   # was 4.0  - matches the arena; corridors occlude most of a longer range anyway
+    kNeighborRange : 1.0                 # was 1.5  - local connectivity at corridor scale
+    kCoverageOcclusionThr : 0.2
+    kCoverageDilationRadius : 0.25
+
+    # Grid World
+    kGridWorldXNum : 41                  # was 121 - 10x10 m needs only a few global cells; smaller = less memory/compute (safe to raise)
+    kGridWorldYNum : 41                  # was 121
+    kGridWorldZNum : 11                  # was 121 - single flat level
+    kGridWorldCellHeight : 3.0
+    kGridWorldNearbyGridNum : 15
+    kMinAddPointNumSmall : 8             # was 16 - more sensitive: small rooms shouldn't be skipped as "nothing new"
+    kMinAddPointNumBig : 16             # was 32
+    kMinAddFrontierPointNum : 2
+    kCellExploringToCoveredThr : 1
+    kCellCoveredToExploringThr: 10
+    kCellExploringToAlmostCoveredThr: 15
+    kCellAlmostCoveredToExploringThr: 30
+    kCellUnknownToExploringThr: 1
+
+    # Visualization
+    kExploringSubspaceMarkerColorGradientAlpha : true
+    kExploringSubspaceMarkerColorMaxAlpha : 0.8
+    kExploringSubspaceMarkerColorR : 0.0
+    kExploringSubspaceMarkerColorG : 1.0
+    kExploringSubspaceMarkerColorB : 0.0
+    kExploringSubspaceMarkerColorA : 1.0
+    kLocalPlanningHorizonMarkerColorR : 0.0
+    kLocalPlanningHorizonMarkerColorG : 1.0
+    kLocalPlanningHorizonMarkerColorB : 0.0
+    kLocalPlanningHorizonMarkerColorA : 1.0
+    kLocalPlanningHorizonMarkerWidth : 0.15
+    kLocalPlanningHorizonHeight : 3.0
