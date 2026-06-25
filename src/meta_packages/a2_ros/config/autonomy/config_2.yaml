@@ -101,8 +101,8 @@ tare_planner_node:
     kCoverageDilationRadius : 0.25
 
     # Grid World
-    kGridWorldXNum : 41                  # was 121 - 10x10 m needs only a few global cells; smaller = less memory/compute (safe to raise)
-    kGridWorldYNum : 41                  # was 121
+    kGridWorldXNum : 81                  # was 121 - 10x10 m needs only a few global cells; smaller = less memory/compute (safe to raise)
+    kGridWorldYNum : 81                  # was 121
     kGridWorldZNum : 11                  # was 121 - single flat level
     kGridWorldCellHeight : 3.0
     kGridWorldNearbyGridNum : 15

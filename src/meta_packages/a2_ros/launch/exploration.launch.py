@@ -103,8 +103,8 @@ def generate_launch_description():
             output='screen',
             parameters=[{
                 'pathFolder':          get_package_share_directory('local_planner') + '/paths',
-                'vehicleLength':       0.7,
-                'vehicleWidth':        0.45,
+                'vehicleLength':       0.8, #0.7,
+                'vehicleWidth':        0.5,#0.45,
                 'sensorOffsetX':       0.0,
                 'sensorOffsetY':       0.0,
                 'twoWayDrive':         False,
@@ -113,7 +113,7 @@ def generate_launch_description():
                 'useTerrainAnalysis':  True,
                 'checkObstacle':       True,
                 'checkRotObstacle':    True,   # keep True - rejects in-place turns that would clip a wall (footprint diag ~1.0 m vs 1.5 m corridor)
-                'adjacentRange':       2.0,
+                'adjacentRange':       2.0, #2.0,
                 'obstacleHeightThre':  0.2,    # tuned: was 0.25 - cleanly above the flat floor but a touch more conservative so wall bases always block
                 'groundHeightThre':    0.1,
                 'costHeightThre':      0.1,
@@ -126,13 +126,13 @@ def generate_launch_description():
                 'dirWeight':           0.05,   # tuned: was 0.1 - lower goal-direction penalty so the planner will commit to corridors that initially head away from the goal (turns at junctions / into dead-ends)
                 'dirThre':             90.0,
                 'dirToVehicle':        False,
-                'pathScale':           0.5,
-                'minPathScale':        0.3,
-                'pathScaleStep':       0.25,
-                'pathScaleBySpeed':    False,
-                'minPathRange':        1.0,
+                'pathScale':           0.6,#0.6, #0.3,
+                'minPathScale':        0.4,#0.5,#0.1,
+                'pathScaleStep':       0.2, #0.25,
+                'pathScaleBySpeed':    True, #False,
+                'minPathRange':        0.6, #1.0,
                 'pathRangeStep':       0.1,
-                'pathRangeBySpeed':    True,
+                'pathRangeBySpeed':    False,#True,
                 'pathCropByGoal':      True,
                 'autonomyMode':        True,
                 'autonomySpeed':       0.5,
@@ -162,8 +162,8 @@ def generate_launch_description():
                 'maxAccel':         2.0,
                 'switchTimeThre':   1.0,
                 'dirDiffThre':      0.2,   # tuned: was 0.3 - require tighter heading alignment (~11 deg) before driving forward so it doesn't scrape a wall on corner exit
-                'stopDisThre':      0.3,
-                'slowDwnDisThre':   0.6,
+                'stopDisThre':      0.2, #0.3,
+                'slowDwnDisThre':   0.3,#0.6,
                 'useInclRateToSlow': False,
                 'inclRateThre':     120.0,
                 'slowRate1':        0.25,
@@ -181,13 +181,6 @@ def generate_launch_description():
             }],
         ),
         # Terrain map acummulator
-
-        Node(
-            package='terrain_map_accumulator',
-            executable='terrain_map_accumulator',
-            name='terrain_map_accumulator_node',
-            output='screen',
-        ),
 
         # ---- TARE planner (autonomous exploration) ----
         Node(
